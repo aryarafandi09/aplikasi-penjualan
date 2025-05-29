@@ -19,6 +19,7 @@ $barang = mysqli_query($conn, "SELECT * FROM barang");
             <th>Nama Barang</th>
             <th>Stok</th>
             <th>Harga</th>
+            <th>Aksi</th>
         </tr>
         <?php
         $no = 1;
@@ -28,6 +29,10 @@ $barang = mysqli_query($conn, "SELECT * FROM barang");
                 <td>{$row['nama_barang']}</td>
                 <td>{$row['stok']}</td>
                 <td>Rp " . number_format($row['harga'], 0, ',', '.') . "</td>
+                <td>
+                    <a href='edit.php?id={$row['id']}'>Edit</a> |
+                    <a href='hapus.php?id={$row['id']}' onclick=\"return confirm('Yakin ingin hapus?')\">Hapus</a>
+                </td>
             </tr>";
             $no++;
         }
