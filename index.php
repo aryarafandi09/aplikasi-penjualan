@@ -1,70 +1,69 @@
 <?php
-include 'modules/user/hakakses.php';
+session_start();
+include 'config/database.php';
 include 'views/header.php';
 include 'views/sidebar.php';
-include 'config/database.php';
 
-$username = $_SESSION['username'];
-$role     = $_SESSION['role'];
-
-$today = date('Y-m-d');
-$t_trans = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM penjualan WHERE DATE(tanggal)='$today'"))['total'];
-$t_income = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_harga) as total FROM penjualan WHERE DATE(tanggal)='$today'"))['total'] ?? 0;
-$t_barang = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM barang"))['total'];
-
-$stok_menipis = mysqli_query($conn, "SELECT * FROM barang WHERE stok <= 5");
+// Ambil data summary
+$totalBarang = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM barang"))['total'];
+$totalTransaksi = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM penjualan"))['total'];
+$totalPendapatan = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_harga) AS total FROM penjualan"))['total'] ?? 0;
+$stokMinimal = mysqli_query($conn, "SELECT * FROM barang WHERE stok <= 5");
 ?>
 
 <div class="container mt-4">
-    <h2>Dashboard</h2>
-    <p class="text-muted">Halo, <strong><?= $username ?></strong> (<?= ucfirst($role) ?>)</p>
 
-    <div class="row mb-4">
+    <!-- 👤 Info User -->
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <div>
+            👋 Selamat datang, <strong><?= $_SESSION['nama'] ?? $_SESSION['username'] ?></strong>
+            <small class="text-muted">(Role: <?= $_SESSION['role'] ?>)</small>
+        </div>
+        <a href="logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
+    </div>
+
+    <h2 class="mb-4">Dashboard</h2>
+
+    <!-- 📊 Ringkasan -->
+    <div class="row g-3">
         <div class="col-md-4">
-            <div class="card border-primary mb-3">
+            <div class="card border-start border-primary border-4 shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Transaksi Hari Ini</h5>
-                    <p class="card-text fs-4"><?= $t_trans ?></p>
+                    <h5 class="card-title">Total Barang</h5>
+                    <h3 class="text-primary"><?= $totalBarang ?></h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-success mb-3">
+            <div class="card border-start border-success border-4 shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Pendapatan Hari Ini</h5>
-                    <p class="card-text fs-4">Rp <?= number_format($t_income, 0, ',', '.') ?></p>
+                    <h5 class="card-title">Total Transaksi</h5>
+                    <h3 class="text-success"><?= $totalTransaksi ?></h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-warning mb-3">
+            <div class="card border-start border-warning border-4 shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Jumlah Barang</h5>
-                    <p class="card-text fs-4"><?= $t_barang ?></p>
+                    <h5 class="card-title">Total Pendapatan</h5>
+                    <h3 class="text-warning">Rp <?= number_format($totalPendapatan, 0, ',', '.') ?></h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-warning text-dark fw-bold">
-            Barang Stok Menipis (≤ 5)
+    <!-- ⚠️ Barang Stok Minim -->
+    <?php if (mysqli_num_rows($stokMinimal) > 0): ?>
+        <div class="alert alert-danger mt-4">
+            <strong>⚠️ Barang dengan stok rendah (≤ 5):</strong>
+            <ul class="mb-0">
+                <?php while ($b = mysqli_fetch_assoc($stokMinimal)): ?>
+                    <li><?= $b['nama_barang'] ?> — Stok: <strong><?= $b['stok'] ?></strong></li>
+                <?php endwhile; ?>
+            </ul>
         </div>
-        <div class="card-body">
-            <?php if (mysqli_num_rows($stok_menipis) > 0): ?>
-                <ul class="list-group">
-                    <?php while ($b = mysqli_fetch_assoc($stok_menipis)): ?>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <?= $b['nama_barang'] ?>
-                            <span class="badge bg-danger rounded-pill"><?= $b['stok'] ?></span>
-                        </li>
-                    <?php endwhile; ?>
-                </ul>
-            <?php else: ?>
-                <p class="text-muted">Tidak ada barang dengan stok minim.</p>
-            <?php endif; ?>
-        </div>
-    </div>
+    <?php endif; ?>
+
 </div>
 
 <?php include 'views/footer.php'; ?>
