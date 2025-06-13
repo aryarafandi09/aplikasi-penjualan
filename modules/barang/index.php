@@ -1,42 +1,43 @@
 <?php
+include '../user/hakakses.php';
+cekRole(['Admin', 'Kasir']);
+include '../../views/header.php';
+include '../../views/sidebar.php';
 include '../../config/database.php';
 
 $barang = mysqli_query($conn, "SELECT * FROM barang");
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Daftar Barang</title>
-</head>
-<body>
-    <h2>Daftar Barang</h2>
-    <a href="tambah.php">+ Tambah Barang</a>
-    <br><br>
-    <table border="1" cellpadding="8" cellspacing="0">
-        <tr>
-            <th>No</th>
-            <th>Nama Barang</th>
-            <th>Stok</th>
-            <th>Harga</th>
-            <th>Aksi</th>
-        </tr>
-        <?php
-        $no = 1;
-        while ($row = mysqli_fetch_assoc($barang)) {
-            echo "<tr>
-                <td>{$no}</td>
-                <td>{$row['nama_barang']}</td>
-                <td>{$row['stok']}</td>
-                <td>Rp " . number_format($row['harga'], 0, ',', '.') . "</td>
+<div class="container mt-4">
+    <h2 class="mb-4">Data Barang</h2>
+
+    <a href="tambah.php" class="btn btn-primary mb-3">+ Tambah Barang</a>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>Stok</th>
+                <th>Harga</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $no = 1; while ($b = mysqli_fetch_assoc($barang)): ?>
+            <tr>
+                <td><?= $no++ ?></td>
+                <td><?= $b['nama_barang'] ?></td>
+                <td><?= $b['stok'] ?></td>
+                <td>Rp <?= number_format($b['harga'], 0, ',', '.') ?></td>
                 <td>
-                    <a href='edit.php?id={$row['id']}'>Edit</a> |
-                    <a href='hapus.php?id={$row['id']}' onclick=\"return confirm('Yakin ingin hapus?')\">Hapus</a>
+                    <a href="edit.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="hapus.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</a>
                 </td>
-            </tr>";
-            $no++;
-        }
-        ?>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
     </table>
-</body>
-</html>
+</div>
+
+<?php include '../../views/footer.php'; ?>

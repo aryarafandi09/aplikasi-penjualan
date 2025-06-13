@@ -5,44 +5,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $barang_id = $_POST['barang_id'];
     $jumlah = $_POST['jumlah'];
 
-    $query_barang = mysqli_query($conn, "SELECT harga FROM barang WHERE id = '$barang_id'");
-    $barang = mysqli_fetch_assoc($query_barang);
-    $harga = $barang['harga'];
-    $total = $harga * $jumlah;
+    $b = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM barang WHERE id='$barang_id'"));
+    $total = $b['harga'] * $jumlah;
 
-    $query_insert = "INSERT INTO penjualan (barang_id, jumlah, total_harga, tanggal) VALUES ('$barang_id', '$jumlah', '$total', NOW())";
-    $result = mysqli_query($conn, $query_insert);
+    mysqli_query($conn, "INSERT INTO penjualan (barang_id, jumlah, total_harga, tanggal) VALUES ('$barang_id', '$jumlah', '$total', NOW())");
 
-    if ($result) {
-        echo "<script>alert('Transaksi berhasil!'); window.location.href='index.php';</script>";
-    } else {
-        echo "Gagal: " . mysqli_error($conn);
-    }
+    $new_stok = $b['stok'] - $jumlah;
+    mysqli_query($conn, "UPDATE barang SET stok='$new_stok' WHERE id='$barang_id'");
+
+    echo "<script>window.location.href='index.php';</script>";
 }
 
-$barang_list = mysqli_query($conn, "SELECT * FROM barang");
+include '../../views/header.php';
+include '../../views/sidebar.php';
+
+$barang = mysqli_query($conn, "SELECT * FROM barang");
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Transaksi Penjualan</title>
-</head>
-<body>
-    <h2>Transaksi Penjualan</h2>
-    <form method="POST" action="">
-        <label>Pilih Barang:</label><br>
-        <select name="barang_id" required>
-            <option value="">-- Pilih Barang --</option>
-            <?php while ($b = mysqli_fetch_assoc($barang_list)): ?>
-                <option value="<?= $b['id'] ?>"><?= $b['nama_barang'] ?> (Stok: <?= $b['stok'] ?>)</option>
-            <?php endwhile; ?>
-        </select><br><br>
+<div class="container mt-4">
+    <h2>Transaksi Baru</h2>
 
-        <label>Jumlah:</label><br>
-        <input type="number" name="jumlah" required><br><br>
-
-        <button type="submit">Proses</button>
+    <form method="POST" class="mt-3">
+        <div class="mb-3">
+            <label for="barang" class="form-label">Pilih Barang</label>
+            <select name="barang_id" id="barang" class="form-select" required>
+                <option value="">-- Pilih Barang --</option>
+                <?php while ($b = mysqli_fetch_assoc($barang)): ?>
+                    <option value="<?= $b['id'] ?>"><?= $b['nama_barang'] ?> (Stok: <?= $b['stok'] ?>)</option>
+                <?php endwhile; ?>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="jumlah" class="form-label">Jumlah</label>
+            <input type="number" name="jumlah" id="jumlah" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success">Simpan Transaksi</button>
+        <a href="index.php" class="btn btn-secondary">Batal</a>
     </form>
-</body>
-</html>
+</div>
+
+<?php include '../../views/footer.php'; ?>

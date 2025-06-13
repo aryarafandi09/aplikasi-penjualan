@@ -1,70 +1,70 @@
 <?php
-session_start();
-
-// Cek apakah user sudah login
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
-}
-
-// Include koneksi database
+include 'modules/user/hakakses.php';
+include 'views/header.php';
+include 'views/sidebar.php';
 include 'config/database.php';
 
-// Ambil informasi user dari session
 $username = $_SESSION['username'];
-$role = $_SESSION['role']; // admin, kasir, owner
+$role     = $_SESSION['role'];
+
+$today = date('Y-m-d');
+$t_trans = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM penjualan WHERE DATE(tanggal)='$today'"))['total'];
+$t_income = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_harga) as total FROM penjualan WHERE DATE(tanggal)='$today'"))['total'] ?? 0;
+$t_barang = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM barang"))['total'];
+
+$stok_menipis = mysqli_query($conn, "SELECT * FROM barang WHERE stok <= 5");
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard - SIM Penjualan</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0; padding: 0;
-            background-color: #f3f3f3;
-        }
-        header {
-            background-color: #007bff;
-            color: white;
-            padding: 1em;
-            text-align: center;
-        }
-        .container {
-            padding: 2em;
-        }
-        .card {
-            background-color: white;
-            padding: 1.5em;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-bottom: 1em;
-        }
-        .logout {
-            float: right;
-            margin-top: -40px;
-        }
-        .logout a {
-            color: white;
-            background-color: red;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
+<div class="container mt-4">
+    <h2>Dashboard</h2>
+    <p class="text-muted">Halo, <strong><?= $username ?></strong> (<?= ucfirst($role) ?>)</p>
 
-<header>
-    <h1>Dashboard - SIM Penjualan</h1>
-    <div class="logout">
-        <a href="logout.php">Logout</a>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Transaksi Hari Ini</h5>
+                    <p class="card-text fs-4"><?= $t_trans ?></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pendapatan Hari Ini</h5>
+                    <p class="card-text fs-4">Rp <?= number_format($t_income, 0, ',', '.') ?></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Jumlah Barang</h5>
+                    <p class="card-text fs-4"><?= $t_barang ?></p>
+                </div>
+            </div>
+        </div>
     </div>
-</header>
 
-<div class="container">
     <div class="card">
-        <h2>Selamat Datang, <?= htmlspecialchars($username); ?>!</h2>
-        <p>Anda login sebagai: <strong><?= htmlspecialchars(
+        <div class="card-header bg-warning text-dark fw-bold">
+            Barang Stok Menipis (≤ 5)
+        </div>
+        <div class="card-body">
+            <?php if (mysqli_num_rows($stok_menipis) > 0): ?>
+                <ul class="list-group">
+                    <?php while ($b = mysqli_fetch_assoc($stok_menipis)): ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <?= $b['nama_barang'] ?>
+                            <span class="badge bg-danger rounded-pill"><?= $b['stok'] ?></span>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+            <?php else: ?>
+                <p class="text-muted">Tidak ada barang dengan stok minim.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<?php include 'views/footer.php'; ?>

@@ -2,39 +2,30 @@
 include '../../config/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nama_barang = $_POST['nama_barang'];
+    $nama = $_POST['nama_barang'];
     $stok = $_POST['stok'];
     $harga = $_POST['harga'];
 
-    $query = "INSERT INTO barang (nama_barang, stok, harga) VALUES ('$nama_barang', '$stok', '$harga')";
-    $result = mysqli_query($conn, $query);
-
-    if ($result) {
-        echo "<script>alert('Barang berhasil ditambahkan!'); window.location.href='index.php';</script>";
-    } else {
-        echo "Gagal menambahkan barang: " . mysqli_error($conn);
-    }
+    mysqli_query($conn, "INSERT INTO barang (nama_barang, stok, harga) VALUES ('$nama', '$stok', '$harga')");
+    echo "<script>window.location.href='index.php';</script>";
 }
+
+include '../../views/header.php';
+include '../../views/sidebar.php';
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Tambah Barang</title>
-</head>
-<body>
+<div class="container mt-4">
     <h2>Tambah Barang</h2>
-    <form method="POST" action="">
-        <label>Nama Barang:</label><br>
-        <input type="text" name="nama_barang" required><br><br>
 
-        <label>Stok:</label><br>
-        <input type="number" name="stok" required><br><br>
-
-        <label>Harga (Rp):</label><br>
-        <input type="number" name="harga" required><br><br>
-
-        <button type="submit">Simpan</button>
-    </form>
-</body>
-</html>
+    <form method="POST" class="mt-3">
+        <div class="mb-3">
+            <label for="nama" class="form-label">Nama Barang</label>
+            <input type="text" name="nama_barang" id="nama" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="stok" class="form-label">Stok</label>
+            <input type="number" name="stok" id="stok" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="harga" class="form-label">Harga</label>
+            <input type="number" name="harga" id="harga" cl
